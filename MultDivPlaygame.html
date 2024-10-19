@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小小数学家的乘除法冒险 - 终极版</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f8ff;
+            margin: 0;
+        }
+        .game-container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 0 24px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 95%;
+            font-size: 120%;
+        }
+        h1 {
+            color: #4a4a4a;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .game-type, .difficulty {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .game-type button, .difficulty button {
+            font-size: 16px;
+            padding: 8px 16px;
+            margin: 6px;
+            border: 2px solid #4caf50;
+            background-color: white;
+            color: #4caf50;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .game-type button.active, .difficulty button.active {
+            background-color: #4caf50;
+            color: white;
+        }
+        .question {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4a4a4a;
+            margin: 24px 0;
+            padding: 12px;
+        }
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .options button {
+            font-size: 24px;
+            padding: 12px 20px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+        }
+        .options button:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+        .score, .level, .best-score, .timer {
+            font-size: 18px;
+            color: #4a4a4a;
+            margin: 8px 0;
+        }
+        .best-score {
+            color: #ffa500;
+            font-weight: bold;
+        }
+        .feedback {
+            font-size: 22px;
+            margin-top: 12px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        .level-up-reward {
+            font-size: 24px;
+            color: #ff9800;
+            margin: 12px 0;
+            font-weight: bold;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            transition: width 0.5s ease-in-out;
+        }
+        .game-controls {
+            margin-top: 20px;
+        }
+        .game-controls button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 0 6px;
+            border: none;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .game-controls button:hover {
+            background-color: #1976D2;
+        }
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .game-over-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
+        }
+        .game-over h2 {
+            font-size: 36px;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+        .game-over p {
+            font-size: 22px;
+            color: #4a4a4a;
+            margin: 10px 0;
+        }
+        .game-over button {
+            font-size: 22px;
+            padding: 12px 24px;
+            margin-top: 20px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .game-over button:hover {
+            background-color: #45a049;
+        }
+        .pause-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+	    display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .pause-message {
+            font-size: 28px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+	    margin-top: 18%;
+        }
+        .pause-message:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        @keyframes levelUpAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .level-up-animation {
+            animation: levelUpAnimation 0.5s ease-in-out;
+        }
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: explode 1s ease-out forwards;
+        }
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(30);
+                opacity: 0;
+            }
+        }
+        .watermark {
+    		position: fixed;
+    		top: 0;
+    		left: 0;
+    		width: 100%;
+    		height: 100%;
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		font-size: 72px;
+    		color: rgba(0, 0, 0, 0.01);
+    		pointer-events: none;
+    		z-index: 1000;
+    		font-weight: bold;
+    		text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    		letter-spacing: 1.0em;
+		}
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">  </div>
+    <div class="game-container">
+        <h1>小小数学家的乘除法冒险</h1>
+        <div class="game-type">
+            <button id="multiplication" onclick="setGameType('multiplication')" class="active">乘法</button>
+            <button id="division" onclick="setGameType('division')">除法</button>
+        </div>
+        <div class="difficulty">
+            <button id="easy" onclick="setDifficulty('easy')" class="active">简单</button>
+            <button id="medium" onclick="setDifficulty('medium')">中等</button>
+            <button id="hard" onclick="setDifficulty('hard')">困难</button>
+        </div>
+        <div class="best-score" id="bestScore"></div>
+        <div class="timer" id="timer">剩余时间: 30秒</div>
+        <div class="question" id="question"></div>
+        <div class="options" id="options"></div>
+        <div class="score" id="score">当前得分: 0</div>
+        <div class="level" id="level">当前关卡: 1</div>
+        <div class="feedback" id="feedback"></div>
+        <div class="level-up-reward" id="levelUpReward"></div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div class="game-controls">
+            <button onclick="togglePause()">暂停/继续</button>
+            <button onclick="endGame()">结束游戏</button>
+            <button onclick="showResetModal()">重置得分</button>
+        </div>
+    </div>
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2>游戏结束</h2>
+            <p id="finalScore"></p>
+            <p id="finalLevel"></p>
+            <p id="correctAnswers"></p>
+            <p id="wrongAnswers"></p>
+            <button onclick="restartGame()">再玩一次</button>
+        </div>
+    </div>
+    <div class="pause-overlay" id="pauseOverlay">
+        <div class="pause-message" onclick="togglePause()">继续游戏</div>
+    </div>
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <h2>重置得分</h2>
+            <p>请输入密码以重置得分：</p>
+            <input type="password" id="resetPassword" placeholder="输入密码">
+            <button onclick="verifyPassword()">确认</button>
+            <button onclick="closeResetModal()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let level = 1;
+        let currentQuestion;
+        let gameType = 'multiplication';
+        let difficulty = 'easy';
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let bestScores = {
+            multiplication: {
+                easy: { score: 0, level: 0, correct: 0, wrong: 0 },
+                medium: { score: 0, level: 0, correct: 0, wrong: 0 },
+                hard: { score: 0, level: 0, correct: 0, wrong: 0 }
+            },
+            division: {
+                easy: { score: 0, level: 0, correct: 0, wrong: 0 },
+                medium: { score: 0, level: 0, correct: 0, wrong: 0 },
+                hard: { score: 0, level: 0, correct: 0, wrong: 0 }
+            }
+        };
+        const synth = window.speechSynthesis;
+        let timerInterval;
+        let timeLeft = 30;
+        let isPaused = false;
+        let isAnswered = false;
+        let speakQueue = [];
+        let isSpeaking = false;
+        let voices = [];
+        let audioContext;
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playTimeoutSound() {
+            if (!audioContext) {
+                initAudio();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + 0.5);
+
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playTadaSound() {
+            const audio = new Audio('C:\\Windows\\Media\\tada.wav');
+            audio.play();
+        }
+
+        function isLocalStorageAvailable() {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                return true;
+            } catch(e) {
+                return false;
+            }
+        }
+
+        function loadBestScores() {
+            if (isLocalStorageAvailable()) {
+                const savedScores = localStorage.getItem('mathGameBestScores');
+                if (savedScores) {
+                    bestScores = JSON.parse(savedScores);
+                }
+            }
+            updateBestScore();
+        }
+
+        function saveBestScores() {
+            if (isLocalStorageAvailable()) {
+                localStorage.setItem('mathGameBestScores', JSON.stringify(bestScores));
+            }
+        }
+
+        function loadVoices() {
+            return new Promise((resolve) => {
+                let voicesLoaded = false;
+                function setVoices() {
+                    voices = synth.getVoices();
+                    if (voices.length > 0) {
+                        voicesLoaded = true;
+                        resolve(voices);
+                    }
+}
+
+                setVoices();
+
+                if (voicesLoaded) {
+                    resolve(voices);
+                } else {
+                    synth.onvoiceschanged = setVoices;
+                }
+            });
+        }
+
+        function speak(text, priority = false) {
+            console.log('Trying to speak:', text);
+            if (priority) {
+                speakQueue = [];
+                synth.cancel();
+            }
+            speakQueue.push(text);
+            if (!isSpeaking) {
+                speakNext();
+            }
+        }
+
+        function speakNext() {
+            if (speakQueue.length === 0) {
+                isSpeaking = false;
+                return;
+            }
+
+            isSpeaking = true;
+            const text = speakQueue.shift();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.pitch = 1.2;
+            utterance.rate = 0.9;
+            utterance.volume = 1;
+
+            let chineseVoice = voices.find(voice => 
+                voice.lang.startsWith('zh') && voice.name.includes('Natural')
+            );
+            
+            if (!chineseVoice) {
+                chineseVoice = voices.find(voice => voice.lang.startsWith('zh'));
+            }
+
+            if (chineseVoice) {
+                utterance.voice = chineseVoice;
+                console.log('Selected voice:', chineseVoice.name);
+            } else {
+                console.warn('No suitable Chinese voice found. Using default voice.');
+            }
+
+            utterance.onend = () => {
+                console.log('Speech ended');
+                isSpeaking = false;
+                speakNext();
+            };
+
+            utterance.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                isSpeaking = false;
+                speakNext();
+            };
+
+            console.log('Speaking:', text);
+            synth.speak(utterance);
+        }
+
+        function setGameType(newGameType) {
+            gameType = newGameType;
+            document.getElementById('multiplication').classList.remove('active');
+            document.getElementById('division').classList.remove('active');
+            document.getElementById(newGameType).classList.add('active');
+            updateBestScore();
+            resetGame(true);
+        }
+
+        function setDifficulty(newDifficulty) {
+            difficulty = newDifficulty;
+            document.getElementById('easy').classList.remove('active');
+            document.getElementById('medium').classList.remove('active');
+            document.getElementById('hard').classList.remove('active');
+            document.getElementById(newDifficulty).classList.add('active');
+            updateBestScore();
+            resetGame(true);
+        }
+
+        function updateBestScore() {
+            const best = bestScores[gameType][difficulty];
+            document.getElementById('bestScore').textContent = `最佳: ${best.score}分, 第${best.level}关`;
+        }
+
+        function generateQuestion() {
+            let factor1, factor2, maxFactor, divisor, dividend, maxDividend;
+            if (difficulty === 'easy') {
+                maxFactor = 10;
+                maxDividend = 10;
+            } else if (difficulty === 'medium') {
+                maxFactor = gameType === 'multiplication' ? 20 : 100;
+                maxDividend = 100;
+            } else {
+                maxFactor = 100;
+                maxDividend = 1000;
+            }
+
+            if (gameType === 'multiplication') {
+                if (difficulty === 'hard') {
+                    do {
+                        factor1 = Math.floor(Math.random() * 80) + 21;
+                        factor2 = Math.floor(Math.random() * 20) + 1;
+                        if (Math.random() < 0.5) {
+                            [factor1, factor2] = [factor2, factor1];
+                        }
+                    } while (factor1 * factor2 > 1000);
+                } else {
+                    factor1 = Math.floor(Math.random() * maxFactor) + 1;
+                    factor2 = Math.floor(Math.random() * maxFactor) + 1;
+                }
+                const product = factor1 * factor2;
+                currentQuestion = { factor1, factor2, answer: product };
+                const questionText = `${factor1} × ${factor2} = ?`;
+                document.getElementById('question').textContent = questionText;
+                speak(`${factor1} 乘以 ${factor2} 等于几？`);
+                generateOptions(product);
+            } else {
+                do {
+                    divisor = Math.floor(Math.random() * Math.sqrt(maxDividend)) + 2;
+                    dividend = Math.floor(Math.random() * (maxDividend / divisor)) * divisor;
+                } while (dividend === 0 || dividend > maxDividend);
+
+                const quotient = dividend / divisor;
+                currentQuestion = { dividend, divisor, answer: quotient };
+                const questionText = `${dividend} ÷ ${divisor} = ?`;
+                document.getElementById('question').textContent = questionText;
+                speak(`${dividend} 除以 ${divisor} 等于几？`);
+                generateOptions(quotient);
+            }
+            resetTimer();
+        }
+
+        function generateOptions(answer) {
+            const options = [answer];
+            const maxOption = gameType === 'multiplication' ? Math.min(answer * 2, 1000) : Math.max(answer * 2, 10);
+            const optionCount = difficulty === 'hard' ? 4 : 3;
+            while (options.length < optionCount) {
+                let option;
+                if (gameType === 'multiplication' && difficulty === 'hard') {
+                    const deviation = Math.floor(Math.random() * (answer * 0.2)) - Math.floor(answer * 0.1);
+                    option = Math.max(1, Math.min(1000, answer + deviation));
+                } else {
+                    option = Math.floor(Math.random() * maxOption) + 1;
+                }
+                if (!options.includes(option) && option > 0) {
+                    options.push(option);
+                }
+            }
+            shuffleArray(options);
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = Math.floor(option);
+                button.onclick = () => checkAnswer(Math.floor(option));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function checkAnswer(selectedAnswer) {
+            if (isPaused || isAnswered) return;
+            
+            isAnswered = true;
+            clearInterval(timerInterval);
+
+            const feedback = document.getElementById('feedback');
+            if (selectedAnswer === currentQuestion.answer) {
+                score++;
+                correctAnswers++;
+                const correctText = '回答正确！';
+                feedback.textContent = correctText;
+                feedback.style.color = '#4caf50';
+                speak(correctText);
+                if (score % 10 === 0) {
+                    levelUp();
+                }
+            } else {
+                wrongAnswers++;
+                const wrongText = `答错了。正确答案是 ${currentQuestion.answer}。`;
+                feedback.textContent = wrongText;
+                feedback.style.color = '#ff6b6b';
+                speak(wrongText);
+            }
+            document.getElementById('score').textContent = `当前得分: ${score}`;
+            updateBestScoreIfNeeded();
+            updateProgressBar();
+            setTimeout(() => {
+                feedback.textContent = '';
+                document.getElementById('levelUpReward').style.display = 'none';
+                setTimeout(() => {
+                    isAnswered = false;
+                    generateQuestion();
+                }, 1000);
+            }, 2000);
+        }
+
+        function createFirework() {
+            const firework = document.createElement('div');
+            firework.classList.add('firework');
+            firework.style.left = Math.random() * window.innerWidth + 'px';
+            firework.style.top = Math.random() * window.innerHeight + 'px';
+            firework.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            document.body.appendChild(firework);
+
+            setTimeout(() => {
+                document.body.removeChild(firework);
+            }, 1000);
+        }
+
+        function celebrateWithFireworks() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(createFirework, i * 100);
+            }
+        }
+
+        function levelUp() {
+            level++;
+            const levelElement = document.getElementById('level');
+            levelElement.textContent = `当前关卡: ${level}`;
+            levelElement.classList.add('level-up-animation');
+            setTimeout(() => {
+                levelElement.classList.remove('level-up-animation');
+            }, 500);
+
+            const levelUpText = `升级到第${level}关！`;
+            speak(levelUpText);
+            
+            const rewardElement = document.getElementById('levelUpReward');
+            const reward = Math.floor(Math.random() * 5) + 1;
+            score += reward;
+            rewardElement.textContent = `奖励 ${reward} 分！`;
+            rewardElement.style.display = 'block';
+            rewardElement.classList.add('level-up-animation');
+            setTimeout(() => {
+                rewardElement.classList.remove('level-up-animation');
+            }, 500);
+            speak(`奖励 ${reward} 分！`);
+
+            celebrateWithFireworks();
+            playTadaSound();
+        }
+
+        function updateBestScoreIfNeeded() {
+            const current = bestScores[gameType][difficulty];
+            if (score > current.score || 
+                (score === current.score && level > current.level) ||
+                (score === current.score && level === current.level && correctAnswers > current.correct)) {
+                bestScores[gameType][difficulty] = { score, level, correct: correctAnswers, wrong: wrongAnswers };
+                updateBestScore();
+                saveBestScores();
+            }
+        }
+
+        function resetGame(isSettingChange = false) {
+            score = 0;
+            level = 1;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            document.getElementById('score').textContent = `当前得分: ${score}`;
+            document.getElementById('level').textContent = `当前关卡: ${level}`;
+            document.getElementById('levelUpReward').style.display = 'none';
+            updateProgressBar();
+            
+            if (isSettingChange) {
+                speak(`${gameType === 'multiplication' ? '乘法' : '除法'}，${
+                    difficulty === 'easy' ? '简单' : 
+                    difficulty === 'medium' ? '中等' : '困难'
+                }难度。`, true);
+            } else {
+                speak(`游戏开始！${gameType === 'multiplication' ? '乘法' : '除法'}，${
+                    difficulty === 'easy' ? '简单' : 
+                    difficulty === 'medium' ? '中等' : '困难'
+                }难度。`, true);
+            }
+            
+            setTimeout(() => {
+                generateQuestion();
+            }, 500);
+        }
+
+        function updateProgressBar() {
+            const progress = document.getElementById('progress');
+            const progressPercentage = (score % 10) * 10;
+            progress.style.width = `${progressPercentage}%`;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        if (!isAnswered) {
+                            playTimeoutSound();
+                            setTimeout(() => {
+                                checkAnswer(-1);
+                            }, 500);
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = `剩余时间: ${timeLeft}秒`;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseOverlay = document.getElementById('pauseOverlay');
+            if (isPaused) {
+                clearInterval(timerInterval);
+                pauseOverlay.style.display = 'flex';
+                speak("游戏已暂停");
+            } else {
+                pauseOverlay.style.display = 'none';
+                speak("游戏继续");
+                resumeGame();
+            }
+        }
+
+        function resumeGame() {
+            if (timeLeft > 0) {
+                timerInterval = setInterval(() => {
+                    if (!isPaused) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            if (!isAnswered) {
+                                checkAnswer(-1);
+                            }
+                        }
+                    }
+                }, 1000);
+            } else {
+                generateQuestion();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('gameOver').style.display = 'flex';
+            document.getElementById('finalScore').textContent = `最终得分: ${score}`;
+            document.getElementById('finalLevel').textContent = `最终关卡: ${level}`;
+            document.getElementById('correctAnswers').textContent = `答对题数: ${correctAnswers}`;
+            document.getElementById('wrongAnswers').textContent = `答错题数: ${wrongAnswers}`;
+            updateBestScoreIfNeeded();
+            speak("游戏结束！");
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            resetGame();
+        }
+
+        function showResetModal() {
+            document.getElementById('resetModal').style.display = 'block';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+            document.getElementById('resetPassword').value = '';
+        }
+
+        function verifyPassword() {
+            const password = document.getElementById('resetPassword').value;
+            const correctPassword = "1234"; // 设置您的密码
+
+            if (password === correctPassword) {
+                resetScores();
+                closeResetModal();
+                alert("得分已重置！");
+            } else {
+                alert("密码错误！");
+            }
+        }
+
+        function resetScores() {
+            bestScores = {
+                multiplication: {
+                    easy: { score: 0, level: 0, correct: 0, wrong: 0 },
+                    medium: { score: 0, level: 0, correct: 0, wrong: 0 },
+                    hard: { score: 0, level: 0, correct: 0, wrong: 0 }
+                },
+                division: {
+                    easy: { score: 0, level: 0, correct: 0, wrong: 0 },
+                    medium: { score: 0, level: 0, correct: 0, wrong: 0 },
+hard: { score: 0, level: 0, correct: 0, wrong: 0 }
+                }
+            };
+            saveBestScores();
+            updateBestScore();
+        }
+
+        async function initializeGame() {
+            try {
+                await loadVoices();
+                loadBestScores();
+                generateQuestion();
+                console.log('Game initialized successfully');
+            } catch (error) {
+                console.error('Error initializing game:', error);
+            }
+        }
+
+        window.onload = function() {
+            initAudio();
+            initializeGame();
+        };
+
+        document.addEventListener('click', function(event) {
+            if (isPaused && event.target.tagName !== 'BUTTON') {
+                togglePause();
+            }
+        });
+    </script>
+</body>
+</html>
+
+                
